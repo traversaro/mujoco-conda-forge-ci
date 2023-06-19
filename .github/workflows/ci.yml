@@ -123,3 +123,4 @@ jobs:
       run: |
         cd mujoco/build
         cmake --install . --config ${{ matrix.build_type }}
+

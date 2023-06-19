@@ -86,7 +86,9 @@ jobs:
         git checkout v2.0.0rc10
         mkdir build
         cd build
-        cmake -GNinja .. -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DBUILD_SHARED_LIBS:BOOL=ON
+        cmake -GNinja .. -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON
+        cmake --build .
+        cmake --install .
      
     - name: Clone
       shell: bash -l {0}

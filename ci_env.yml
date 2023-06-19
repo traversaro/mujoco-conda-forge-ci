@@ -1,0 +1,28 @@
+name: mujocodev
+channels:
+  - conda-forge
+dependencies:
+  # Build tools dependencies
+  - cmake 
+  - compilers
+  - make 
+  - ninja
+  - pkg-config
+  # C++ dependencies
+  - eigen
+  - qhull
+  - tinyxml2
+  - libccd-double
+  - libabseil
+  - lodepng
+  # Python dependencies
+  - python
+  - pip
+  - setuptools
+  - pybind11
+  - pybind11-abi
+  - numpy
+  - absl-py
+  - glfw
+  - pyglfw
+  - pyopengl

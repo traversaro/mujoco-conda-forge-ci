@@ -16,6 +16,7 @@ dependencies:
   - libabseil
   - lodepng
   - gtest
+  - gmock
   - benchmark
   # Python dependencies
   - python

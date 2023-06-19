@@ -53,7 +53,7 @@ jobs:
       if: github.event_name != 'workflow_dispatch'
       shell: bash -l {0}
       run: |
-        echo "MUJOCO_BRANCH=main" >> $GITHUB_ENV
+        echo "MUJOCO_BRANCH=usesystemdepsoptions" >> $GITHUB_ENV
 
     - name: Setup compilation env variables [Conda/Windows]
       if: contains(matrix.os, 'windows')
@@ -80,7 +80,7 @@ jobs:
     - name: Clone
       shell: bash -l {0}
       run: |
-        git clone https://github.com/deepmind/mujoco
+        git clone https://github.com/traversaro/mujoco
         cd mujoco
         git checkout ${MUJOCO_BRANCH}
 

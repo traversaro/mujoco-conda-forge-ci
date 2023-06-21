@@ -38,10 +38,6 @@ jobs:
       with:
         environment-file: ci_env.yml
         cache-environment-key: environment-${{ steps.week.outputs.week }}
-
-    - name: Configure VS Toolchain (Windows)
-      if: contains(matrix.os, 'windows')
-      uses: ilammy/msvc-dev-cmd@v1.12.1
       
     - name: Setup branch or tag to use
       if: github.event_name == 'workflow_dispatch'
@@ -59,16 +55,14 @@ jobs:
       if: contains(matrix.os, 'windows')
       shell: bash -l {0}
       run: |
-        bash_vc_install=${VCToolsInstallDir//\\//}        
-        compiler_path=${bash_vc_install}bin/Hostx64/x64/cl.exe
-        echo "CC=${compiler_path}" >> $GITHUB_ENV
-        echo "CXX=${compiler_path}" >> $GITHUB_ENV
+        echo "GHA_CMAKE_GENERATOR=Visual Studio 16 2019" >> $GITHUB_ENV
         echo "CONDA_CXX_LIBRARIES_INSTALL_PREFIX=${CONDA_PREFIX}\Library" >> $GITHUB_ENV
 
     - name: Setup compilation env variables [Conda/Linux&macOS]
       if: contains(matrix.os, 'macos') || contains(matrix.os, 'ubuntu')
       shell: bash -l {0}
       run: |
+        echo "GHA_CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
         echo "CONDA_CXX_LIBRARIES_INSTALL_PREFIX=${CONDA_PREFIX}" >> $GITHUB_ENV
 
     - name: Print used environment
@@ -86,9 +80,9 @@ jobs:
         git checkout v2.0.0rc10
         mkdir build
         cd build
-        cmake -GNinja .. -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON
-        cmake --build .
-        cmake --install .
+        cmake -G${GHA_CMAKE_GENERATOR} .. -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON
+        cmake --build . --config ${{ matrix.build_type }}
+        cmake --install . --config ${{ matrix.build_type }}
      
     - name: Clone
       shell: bash -l {0}
@@ -104,7 +98,7 @@ jobs:
         mkdir build
         cd build
         # CMAKE_C_FLAGS is required due to the use of new compilers with -Werror
-        cmake -GNinja -DCMAKE_C_FLAGS="-Wno-stringop-truncation -Wno-unknown-warning-option" -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=ON -DMUJOCO_BUILD_TESTS:BOOL=ON -DMUJOCO_BUILD_SIMULATE:BOOL=OFF -DMUJOCO_BUILD_EXAMPLES:BOOL=OFF -DMUJOCO_ENABLE_AVX:BOOL=OFF -DMUJOCO_ENABLE_AVX_INTRINSICS:BOOL=OFF -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=OFF -DMUJOCO_INSTALL_PLUGINS:BOOL=ON \
+        cmake  -G${GHA_CMAKE_GENERATOR} -DCMAKE_C_FLAGS="-Wno-stringop-truncation -Wno-unknown-warning-option" -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=ON -DMUJOCO_BUILD_TESTS:BOOL=ON -DMUJOCO_BUILD_SIMULATE:BOOL=OFF -DMUJOCO_BUILD_EXAMPLES:BOOL=OFF -DMUJOCO_ENABLE_AVX:BOOL=OFF -DMUJOCO_ENABLE_AVX_INTRINSICS:BOOL=OFF -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=OFF -DMUJOCO_INSTALL_PLUGINS:BOOL=ON \
                       -DMUJOCO_USE_SYSTEM_lodepng:BOOL=ON -DMUJOCO_USE_SYSTEM_qhull:BOOL=ON -DMUJOCO_USE_SYSTEM_tinyxml2:BOOL=ON -DMUJOCO_USE_SYSTEM_tinyobjloader:BOOL=ON -DMUJOCO_USE_SYSTEM_ccd:BOOL=ON -DMUJOCO_USE_SYSTEM_abseil:BOOL=ON -DMUJOCO_USE_SYSTEM_gtest:BOOL=ON -DMUJOCO_USE_SYSTEM_benchmark:BOOL=ON -DMUJOCO_USE_SYSTEM_Eigen3:BOOL=ON ..
 
     - name: Build

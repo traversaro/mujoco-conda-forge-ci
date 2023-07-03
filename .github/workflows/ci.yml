@@ -22,7 +22,8 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Release]
-        os: [ubuntu-20.04, macos-latest, windows-2019]
+        # Add back macos-latest once https://github.com/traversaro/mujoco-conda-forge-ci/pull/2 is merged
+        os: [ubuntu-20.04, windows-2019]
 
     steps:
     - uses: actions/checkout@v3

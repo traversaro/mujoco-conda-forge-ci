@@ -22,8 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Release]
-        # Add back macos-latest once https://github.com/traversaro/mujoco-conda-forge-ci/pull/2 is merged
-        os: [ubuntu-20.04, windows-2019]
+        os: [ubuntu-20.04, macos-latest, windows-2019]
 
     steps:
     - uses: actions/checkout@v3
@@ -54,7 +53,7 @@ jobs:
       if: github.event_name != 'workflow_dispatch'
       shell: bash -l {0}
       run: |
-        echo "MUJOCO_BRANCH=main" >> $GITHUB_ENV
+        echo "MUJOCO_BRANCH=usesystemdepsoptions" >> $GITHUB_ENV
 
     - name: Setup compilation env variables [Conda/Windows]
       if: contains(matrix.os, 'windows')
@@ -77,11 +76,24 @@ jobs:
       run: |
         micromamba list
         env
-
+    
+    # Need to be installed manually as there is no recent release of tinyobjloader
+    - name: Install tinyobjloader
+      shell: bash -l {0}
+      run: |
+        git clone https://github.com/tinyobjloader/tinyobjloader
+        cd tinyobjloader
+        git checkout v2.0.0rc10
+        mkdir build
+        cd build
+        cmake -GNinja .. -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON
+        cmake --build .
+        cmake --install .
+     
     - name: Clone
       shell: bash -l {0}
       run: |
-        git clone https://github.com/deepmind/mujoco
+        git clone https://github.com/traversaro/mujoco
         cd mujoco
         git checkout ${MUJOCO_BRANCH}
 
@@ -91,7 +103,9 @@ jobs:
         cd mujoco
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=ON -DMUJOCO_BUILD_TESTS:BOOL=ON -DMUJOCO_BUILD_SIMULATE:BOOL=OFF -DMUJOCO_BUILD_EXAMPLES:BOOL=OFF -DMUJOCO_ENABLE_AVX:BOOL=OFF -DMUJOCO_ENABLE_AVX_INTRINSICS:BOOL=OFF -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=ON -DMUJOCO_INSTALL_PLUGINS:BOOL=ON ..
+        # CMAKE_C_FLAGS is required due to the use of new compilers with -Werror
+        cmake -GNinja -DCMAKE_C_FLAGS="-Wno-stringop-truncation -Wno-unknown-warning-option" -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=ON -DMUJOCO_BUILD_TESTS:BOOL=ON -DMUJOCO_BUILD_SIMULATE:BOOL=OFF -DMUJOCO_BUILD_EXAMPLES:BOOL=OFF -DMUJOCO_ENABLE_AVX:BOOL=OFF -DMUJOCO_ENABLE_AVX_INTRINSICS:BOOL=OFF -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=OFF -DMUJOCO_INSTALL_PLUGINS:BOOL=ON \
+                      -DMUJOCO_USE_SYSTEM_lodepng:BOOL=ON -DMUJOCO_USE_SYSTEM_qhull:BOOL=ON -DMUJOCO_USE_SYSTEM_tinyxml2:BOOL=ON -DMUJOCO_USE_SYSTEM_tinyobjloader:BOOL=ON -DMUJOCO_USE_SYSTEM_ccd:BOOL=ON -DMUJOCO_USE_SYSTEM_abseil:BOOL=ON -DMUJOCO_USE_SYSTEM_gtest:BOOL=ON -DMUJOCO_USE_SYSTEM_benchmark:BOOL=ON -DMUJOCO_USE_SYSTEM_Eigen3:BOOL=ON ..
 
     - name: Build
       shell: bash -l {0}
@@ -110,3 +124,4 @@ jobs:
       run: |
         cd mujoco/build
         cmake --install . --config ${{ matrix.build_type }}
+

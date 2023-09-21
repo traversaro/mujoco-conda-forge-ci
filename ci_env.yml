@@ -15,6 +15,9 @@ dependencies:
   - libccd-double
   - libabseil
   - lodepng
+  - gtest
+  - gmock
+  - benchmark
   # Python dependencies
   - python
   - pip

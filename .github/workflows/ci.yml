@@ -76,7 +76,20 @@ jobs:
       run: |
         micromamba list
         env
-    
+
+    # Need to be installed manually as there is no conda package of sdflib
+    - name: Install sdflib
+      shell: bash -l {0}
+      run: |
+        git clone https://github.com/traversaro/SdfLib
+        cd SdfLib
+        git checkout conda
+        mkdir build
+        cd build
+        cmake -GNinja .. -DSDFLIB_BUILD_APPS:BOOL=OFF -DSDFLIB_BUILD_DEBUG_APPS:BOOL=OFF -DSDFLIB_USE_ASSIMP:BOOL=ON -DSDFLIB_USE_OPENMP:BOOL=OFF -DSDFLIB_USE_ENOKI:BOOL=OFF -DSDFLIB_USE_SYSTEM_GLM:BOOL=ON -DSDFLIB_USE_SYSTEM_ASSIMP:BOOL=ON -DSDFLIB_USE_SYSTEM_SPDLOG:BOOL=ON -DSDFLIB_USE_SYSTEM_CEREAL:BOOL=ON -DCMAKE_INSTALL_PREFIX=${CONDA_CXX_LIBRARIES_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_SHARED_LIBS:BOOL=ON
+        cmake --build .
+        cmake --install .
+
     # Need to be installed manually as there is no recent release of tinyobjloader
     - name: Install tinyobjloader
       shell: bash -l {0}

@@ -29,3 +29,9 @@ dependencies:
   - glfw
   - pyglfw
   - pyopengl
+  # sdflib dependencies
+  - cereal
+  - spdlog
+  - assimp
+  - glm
+

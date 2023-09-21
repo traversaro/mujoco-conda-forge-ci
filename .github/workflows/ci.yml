@@ -53,7 +53,7 @@ jobs:
       if: github.event_name != 'workflow_dispatch'
       shell: bash -l {0}
       run: |
-        echo "MUJOCO_BRANCH=usesystemdepsoptions" >> $GITHUB_ENV
+        echo "MUJOCO_BRANCH=usesystemdepsoptions2023sep" >> $GITHUB_ENV
 
     - name: Setup compilation env variables [Conda/Windows]
       if: contains(matrix.os, 'windows')
